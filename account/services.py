@@ -25,6 +25,11 @@ def send_template_email(template, email, subject, **context):
 def generate_code(length=6):
     return ''.join([str(random.randint(0, 9)) for i in range(length)])
 
+def send_invite_email(email, diagram):
+    send_template_email('invite.html', email, "ERDVision collaboration invite", **{
+        'diagram': diagram
+    })
+
 
 def send_verification_email(email):
     otp = generate_code()

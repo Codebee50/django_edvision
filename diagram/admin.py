@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Diagram, DatabaseColumn, DatabaseTable, Relationship
+from .models import Diagram, DatabaseColumn, DatabaseTable, Relationship, DiagramMember
 
 @admin.register(Diagram)
 class DiagramAdmin(admin.ModelAdmin):
@@ -9,4 +9,5 @@ class DiagramAdmin(admin.ModelAdmin):
 admin.site.register(DatabaseTable)
 admin.site.register(DatabaseColumn)
 admin.site.register(Relationship)
+admin.site.register(DiagramMember)
 

@@ -1,5 +1,29 @@
 from rest_framework import serializers
-from .models import Diagram, DatabaseTable, DatabaseColumn, Relationship
+from .models import Diagram, DatabaseTable, DatabaseColumn, Relationship, DiagramMember
+from account.models import UserAccount
+from account.serializers import UserSerializer
+
+
+class GrantWriteRequestSerializer(serializers.Serializer):
+    grant_to = serializers.UUIDField()
+    diagram = serializers.UUIDField()
+    
+
+class DiagramMemberSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+    class Meta:
+        model = DiagramMember
+        fields = "__all__"
+        
+    
+
+class InviteUserSerializer(serializers.Serializer):
+    email = serializers.CharField()
+    
+    def validate_email(self, value):
+        if not UserAccount.objects.filter(email=value).exists():
+            raise serializers.ValidationError("User does not exist")
+        return value
 
 
 class RelationshipSerializer(serializers.ModelSerializer):
@@ -56,6 +80,8 @@ class DiagramDetailSerializer(serializers.ModelSerializer):
     tables = serializers.SerializerMethodField()
     columns= serializers.SerializerMethodField()
     relationships = serializers.SerializerMethodField()
+    creator = UserSerializer()
+    writer = UserSerializer()
     
     class Meta:
         model = Diagram

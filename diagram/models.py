@@ -11,12 +11,13 @@ class Diagram(models.Model):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, unique=True, editable=False)
     name = models.CharField(max_length=100)
     description = models.TextField()
-    creator = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
+    creator = models.ForeignKey(UserAccount, on_delete=models.CASCADE, related_name='diagrams')
     visibility = models.CharField(choices=VisibilityChoices.choices, default=VisibilityChoices.PUBLIC, max_length=20)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     database_type = models.CharField(choices=DatabaseTypeChoices.choices, default=DatabaseTypeChoices.POSTGRESQL, max_length=20)
     synced = models.BooleanField(default=True)
+    writer = models.ForeignKey(UserAccount, on_delete=models.SET_NULL, null=True, blank=True, related_name='diagramwrites')
     
     
     def __str__(self):
@@ -24,6 +25,18 @@ class Diagram(models.Model):
     
     class Meta:
         ordering = ['-created_at']
+
+class Version(models.Model):
+    diagram = models.ForeignKey(Diagram, on_delete=models.CASCADE)
+    version_number = models.IntegerField(default=1)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+class DiagramMember(models.Model):
+    user= models.ForeignKey(UserAccount, on_delete=models.CASCADE)
+    diagram = models.ForeignKey(Diagram, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now_add=True)
     
 class DatabaseTable(models.Model):
     diagram = models.ForeignKey(Diagram, on_delete=models.CASCADE)

@@ -1,17 +1,88 @@
 from rest_framework import generics
-from .serializers import  DiagramCreateSerializer, DiagramDetailSerializer, \
-    DatabaseTableCreateSerializer, DatabasePositionsSerializer ,DatabaseTableSyncSerializer, \
-        RelationshipCreateSerializer, DatabaseColumnCreateSerializer, DatabaseColumnSerializer, RelationshipSerializer
+from .serializers import  *
 from rest_framework.permissions import IsAuthenticated
 from common.utils import format_first_error
 from common.responses import ErrorResponse, SuccessResponse
-from .models import Diagram, DatabaseTable, DatabaseColumn, Relationship
+from .models import Diagram, DatabaseTable, DatabaseColumn, Relationship, DiagramMember
 from .datatypes import mappings
+from account.services import send_invite_email
+
 # Create your views here.
 
+class GrantWriteRequestView(generics.GenericAPIView):
+    serializer_class = GrantWriteRequestSerializer
+    permission_classes = [IsAuthenticated]
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            grant_to_id = serializer.validated_data.get('grant_to')
+            diagram_id = serializer.validated_data.get('diagram')
+            
+            try:
+                diagram = Diagram.objects.get(id=diagram_id)
+            except Diagram.DoesNotExist:
+                return ErrorResponse(message="Diagram not found")
+            
+            try:
+                grant_to = UserAccount.objects.get(id=grant_to_id)
+            except UserAccount.DoesNotExist:
+                return ErrorResponse(message="User not found")
+            
+            if diagram.creator == request.user or diagram.writer == request.user:
+                diagram.writer = grant_to
+                diagram.save()
+                return SuccessResponse(message="Access granted successfully", data=UserSerializer(grant_to).data)
+            
+            return ErrorResponse(message="You cannot grant access on this diagram currently")
+            
+        else:
+            return ErrorResponse(message=format_first_error(serializer.errors))
+
+class GetDiagramMembers(generics.GenericAPIView):
+    serializer_class = DiagramMemberSerializer
+    def get(self, request, *args, **kwargs):
+        try:
+            diagram = Diagram.objects.get(id=kwargs.get('diagram_id'))
+        except Diagram.DoesNotExist:
+            return ErrorResponse(message="Diagram does not exist")
+        
+        members = DiagramMember.objects.filter(diagram=diagram)
+        return SuccessResponse(message="members", data=self.get_serializer(members, many=True).data)        
 
 
+class InviteUserView(generics.GenericAPIView):
+    serializer_class = InviteUserSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            email = serializer.validated_data.get('email')
+            try:
+                diagram = Diagram.objects.get(id=kwargs.get('diagram_id'))
+            except Diagram.DoesNotExist:
+                return ErrorResponse(message="Diagram not found")
+            
+            if request.user != diagram.creator:
+                return ErrorResponse(message="Oops, only creators are allowed to invite members")
+            
+            user = UserAccount.objects.get(email=email)
+            if DiagramMember.objects.filter(diagram=diagram, user=user).exists()  or email==diagram.creator.email:
+                return ErrorResponse(message="User is already a member")
+            
+            
+            diagram_member = DiagramMember.objects.create(user=user, diagram=diagram)
+            send_invite_email(user.email, diagram)
+            return SuccessResponse(message=f"{user.first_name} {user.last_name} has been invited successfully", data=DiagramMemberSerializer(diagram_member).data)
+        else:
+            return ErrorResponse(message=format_first_error(serializer.errors))
+        
+        
 
+class DeleteTableView(generics.DestroyAPIView):
+    queryset = DatabaseTable.objects.all()
+    lookup_field = 'id'
+    permission_classes= [IsAuthenticated]
 
 class DeleteDiagramView(generics.DestroyAPIView):
     queryset = Diagram.objects.all()
