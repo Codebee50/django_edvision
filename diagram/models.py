@@ -3,9 +3,6 @@ import uuid
 from account.models import UserAccount
 from .choices import VisibilityChoices, DatabaseTypeChoices, RelationshipTypeChoices
 
-# Create your models here.
-
-
 
 class Diagram(models.Model):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, unique=True, editable=False)
@@ -26,11 +23,11 @@ class Diagram(models.Model):
     class Meta:
         ordering = ['-created_at']
 
-class Version(models.Model):
-    diagram = models.ForeignKey(Diagram, on_delete=models.CASCADE)
-    version_number = models.IntegerField(default=1)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+# class Version(models.Model):
+#     diagram = models.ForeignKey(Diagram, on_delete=models.CASCADE)
+#     version_number = models.IntegerField(default=1)
+#     created_at = models.DateTimeField(auto_now_add=True)
+#     updated_at = models.DateTimeField(auto_now=True)
     
 class DiagramMember(models.Model):
     user= models.ForeignKey(UserAccount, on_delete=models.CASCADE)
@@ -72,7 +69,7 @@ class Relationship(models.Model):
     diagram = models.ForeignKey(Diagram, on_delete=models.CASCADE)
     from_column = models.ForeignKey(DatabaseColumn, on_delete=models.CASCADE, related_name='from_column_rels')
     to_column = models.ForeignKey(DatabaseColumn, on_delete=models.CASCADE, related_name="to_column_rels")
-    rel_type = models.CharField(max_length=20)#TODO: REMOVE IF NOT LATER IN USE
+    rel_type = models.CharField(max_length=20)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     synced = models.BooleanField(default=True)

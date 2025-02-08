@@ -2,6 +2,7 @@ from rest_framework import generics
 from diagram.models import Diagram
 from common.responses import ErrorResponse, SuccessResponse
 from .postgresql import export_postgres
+from .djangoorm import export_django
 import os
 from django.conf import settings
 from .utils import write_destination
@@ -23,6 +24,12 @@ class ExportPostgresView(generics.GenericAPIView):
             file_name = f"erdvision-pgsql-{diagram.id}.sql"
             response = HttpResponse(statement, content_type="application/sql")
             response['Content-Disposition'] = f'filename={file_name}'
+            return response
+        if diagram.database_type == DatabaseTypeChoices.DJANGO_ORM:
+            statement = export_django(diagram=diagram)
+            file_name = f"erdvison-dorm-{diagram.id}.py"
+            response = HttpResponse(statement, content_type='application/py')
+            response['Content-Disposition'] = f"filename={file_name}"
             return response
 
         

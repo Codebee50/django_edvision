@@ -27,7 +27,8 @@ def generate_code(length=6):
 
 def send_invite_email(email, diagram):
     send_template_email('invite.html', email, "ERDVision collaboration invite", **{
-        'diagram': diagram
+        'diagram': diagram,
+        'url': f"{settings.FE_URL}/diagram/{diagram.id}/"
     })
 
 
