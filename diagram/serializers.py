@@ -74,6 +74,10 @@ class DatabaseTableSerializer(serializers.ModelSerializer):
     def get_columns(self, obj):
         columns = DatabaseColumn.objects.filter(db_table=obj)
         return DatabaseColumnSerializer(columns, many=True).data
+    
+
+    
+
 
 
 class DiagramDetailSerializer(serializers.ModelSerializer):

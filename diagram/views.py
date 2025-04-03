@@ -9,6 +9,8 @@ from account.services import send_invite_email
 
 # Create your views here.
 
+
+
 class GrantWriteRequestView(generics.GenericAPIView):
     serializer_class = GrantWriteRequestSerializer
     permission_classes = [IsAuthenticated]

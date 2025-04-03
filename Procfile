@@ -1,0 +1,1 @@
+web: python manage.py migrate && daphne erdvision.asgi:application --port 8080 --bind 0.0.0.0 -v2

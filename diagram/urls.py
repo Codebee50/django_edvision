@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from .overhaul import overhaul_views
 
 urlpatterns = [
     path('create/', views.CreateDiagramView.as_view(), name='create-diagram'),
@@ -22,6 +23,7 @@ urlpatterns = [
     
     path('invite/<uuid:diagram_id>/', views.InviteUserView.as_view(), name='invite-user'),
     path('members/<uuid:diagram_id>/', views.GetDiagramMembers.as_view(), name='diagram-members'),
-    path('access/grant/',views.GrantWriteRequestView.as_view(), name='grant-write-request')
+    path('access/grant/',views.GrantWriteRequestView.as_view(), name='grant-write-request'),
+    path('overhaul/', overhaul_views.OverHaulDiagramView.as_view(), name='overhaul-diagram')
 
 ]
