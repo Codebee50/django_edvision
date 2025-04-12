@@ -15,7 +15,7 @@ class Diagram(models.Model):
     database_type = models.CharField(choices=DatabaseTypeChoices.choices, default=DatabaseTypeChoices.POSTGRESQL, max_length=20)
     synced = models.BooleanField(default=True)
     writer = models.ForeignKey(UserAccount, on_delete=models.SET_NULL, null=True, blank=True, related_name='diagramwrites')
-    
+    live_sync =models.BooleanField(default=False)
     
     def __str__(self):
         return self.name
@@ -61,9 +61,15 @@ class DatabaseColumn(models.Model):
     comment = models.TextField(null=True, blank=True)
     default_value = models.CharField(max_length=255, null=True, blank=True)
     synced = models.BooleanField(default=True)
+    flow_id = models.UUIDField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     
     def __str__(self):
         return f"({self.id} - {self.name} - {self.datatype}) on {self.db_table.name}"    
+    
+    class Meta:
+        ordering = ['created_at']
 
 class Relationship(models.Model):
     diagram = models.ForeignKey(Diagram, on_delete=models.CASCADE)

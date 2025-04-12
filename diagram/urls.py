@@ -12,6 +12,7 @@ urlpatterns = [
     path('table/delete/<int:id>/', views.DeleteTableView.as_view(), name='delete-table'),
     
     path('column/create/', views.DatabaseColumnCreateView.as_view(), name='create-db-column'),
+    path('column/delete/<int:id>/', views.ColumnDeleteView.as_view(), name='delete-db-column'),
     
     path('relationship/create/', views.RelationshipCreateView.as_view(), name='create-relationship'),
     path('column/sync/<int:id>/', views.SyncDatabaseColumn.as_view(), name='sync-column'),

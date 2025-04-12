@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'diagram',
     'chat',
     'export',
+    'billing',
     
     'rest_framework',
     'drf_yasg',

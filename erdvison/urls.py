@@ -43,8 +43,8 @@ urlpatterns = [
     path('auth/', include('account.urls')),
     path('diagram/', include('diagram.urls')),
     path('chat/', include('chat.urls')),
-    path('export/', include('export.urls'))
-    
+    path('export/', include('export.urls')),
+    path('billing/', include('billing.urls')),
 ]
 
 if settings.DEBUG:
