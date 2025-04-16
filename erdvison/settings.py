@@ -17,6 +17,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 from datetime import timedelta
 import os
 from decouple import config
+import dj_database_url
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -104,6 +105,8 @@ SWAGGER_SETTINGS = {
 #     }
 # }
 
+
+print(DEBUG)
 if DEBUG:
     DATABASES = {
         "default": {
@@ -115,7 +118,6 @@ if DEBUG:
         }
     }
 else:
-    #a
     DATABASE_URL = config('DATABASE_URL')
     DATABASES = {
         "default": dj_database_url.config(default=DATABASE_URL, conn_max_age=1800),
