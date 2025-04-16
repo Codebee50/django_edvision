@@ -1,6 +1,4 @@
-from msilib import Table
 from rest_framework import generics
-
 from common.responses import ErrorResponse, SuccessResponse
 from common.utils import format_first_error
 from diagram.models import DatabaseColumn, DatabaseTable, Diagram, Relationship
