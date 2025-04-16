@@ -25,6 +25,11 @@ urlpatterns = [
     path('invite/<uuid:diagram_id>/', views.InviteUserView.as_view(), name='invite-user'),
     path('members/<uuid:diagram_id>/', views.GetDiagramMembers.as_view(), name='diagram-members'),
     path('access/grant/',views.GrantWriteRequestView.as_view(), name='grant-write-request'),
-    path('overhaul/', overhaul_views.OverHaulDiagramView.as_view(), name='overhaul-diagram')
-
+    path('overhaul/', overhaul_views.OverHaulDiagramView.as_view(), name='overhaul-diagram'),
+    path('payment/initialize/', views.InitializeDiagramPaymentView.as_view(), name='initialize-diagram-payment'),
+    path('invitation/<int:id>/', views.GetInvitationView.as_view(), name='diagram-invitation'),
+    path('invitations/', views.ListMyInvitationsView.as_view(), name='list-my-invitations'),
+    path('invitation/accept/', views.AcceptInvitationView.as_view(), name='accept-invitation'),
+    path('invitation/reject/', views.RejectInvitationView.as_view(), name='reject-invitation'),
+    path('shared/', views.InvitedDiagramsListView.as_view(), name='invited-diagrams')
 ]

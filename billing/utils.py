@@ -1,5 +1,15 @@
 import requests
 from django.conf import settings
+from django.utils import timezone
+
+from account.models import UserAccount
+from .models import Subscription
+
+def get_active_subscription(user: UserAccount):
+    return Subscription.objects.filter(
+        user=user,
+    ).order_by('-created_at').first()
+
 
 
 class ApiResponse():
@@ -8,6 +18,14 @@ class ApiResponse():
         self.body = body
         self.message = message
         self.status_code = status_code
+
+def convert_dollar_to_naira(dollar_amount):
+    response = requests.get(f"https://v6.exchangerate-api.com/v6/{settings.EXCHANGE_RATE_API_KEY}/latest/USD")
+    if response.status_code == 200:
+        response_data = response.json()
+        ngn_rate = response_data.get('conversion_rates', {}).get('NGN', 0)
+        return dollar_amount * ngn_rate
+    return 0
 
 def request_paystack(path, method='get', data=None, params=None):
     base_url = "https://api.paystack.co"

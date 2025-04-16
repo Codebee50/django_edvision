@@ -25,10 +25,11 @@ def send_template_email(template, email, subject, **context):
 def generate_code(length=6):
     return ''.join([str(random.randint(0, 9)) for i in range(length)])
 
-def send_invite_email(email, diagram):
+def send_invite_email(email, diagram, invitation):
     send_template_email('invite.html', email, "ERDVision collaboration invite", **{
         'diagram': diagram,
-        'url': f"{settings.FE_URL}/diagram/{diagram.id}/"
+        'url': f"{settings.FE_URL}/invitation/{invitation.id}/",
+        "user_email": email
     })
 
 

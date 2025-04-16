@@ -1,13 +1,142 @@
+import uuid
 from rest_framework import generics
+
+from account.utils import notify_user
+from billing.models import PRICE_PER_DIAGRAM, Transaction, TransactionTypeChoices
+from billing.utils import get_active_subscription, request_paystack
 from .serializers import *
 from rest_framework.permissions import IsAuthenticated
 from common.utils import format_first_error
 from common.responses import ErrorResponse, SuccessResponse
-from .models import Diagram, DatabaseTable, DatabaseColumn, Relationship, DiagramMember
+from .models import (
+    Diagram,
+    DatabaseTable,
+    DatabaseColumn,
+    DiagramInvitation,
+    DiagramInvitationStatusChoices,
+    Relationship,
+    DiagramMember,
+)
 from .datatypes import mappings
 from account.services import send_invite_email
+from django.conf import settings
+from django.utils import timezone
 
 # Create your views here.
+
+
+class RejectInvitationView(generics.GenericAPIView):
+    serializer_class = DiagramInvitationIdSerializer
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if not serializer.is_valid():
+            return ErrorResponse(message=format_first_error(serializer.errors))
+
+        invitation = serializer.validated_data.get("invitation")
+        if not invitation.email == request.user.email:
+            return ErrorResponse(
+                message="You do not have the permission to perform this action"
+            )
+
+        invitation.is_accepted = False
+        invitation.status = DiagramInvitationStatusChoices.REJECTED
+        invitation.save()
+        return SuccessResponse(
+            message="Invitation rejected successfully",
+            data=DiagramInvitationSerializer(invitation).data,
+        )
+
+
+class AcceptInvitationView(generics.GenericAPIView):
+    serializer_class = DiagramInvitationIdSerializer
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if not serializer.is_valid():
+            return ErrorResponse(message=format_first_error(serializer.errors))
+
+        invitation = serializer.validated_data.get("invitation")
+        if not invitation.email == request.user.email:
+            return ErrorResponse(
+                message="You do not have the permission to perform this action"
+            )
+
+        invitation.is_accepted = True
+        invitation.status = DiagramInvitationStatusChoices.ACCEPTED
+        invitation.save()
+
+        DiagramMember.objects.create(user=request.user, diagram=invitation.diagram)
+        return SuccessResponse(
+            message="Invitation accepted successfully",
+            data=DiagramInvitationSerializer(invitation).data,
+        )
+
+
+class ListMyInvitationsView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = DiagramInvitationSerializer
+
+    def get_queryset(self):
+        return DiagramInvitation.objects.filter(email=self.request.user.email).order_by(
+            "-created_at"
+        )
+
+
+class GetInvitationView(generics.RetrieveAPIView):
+    serializer_class = DiagramInvitationSerializer
+    queryset = DiagramInvitation.objects.all()
+    lookup_field = "id"
+
+
+class InitializeDiagramPaymentView(generics.GenericAPIView):
+    serializer_class = DiagramIdSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if not serializer.is_valid():
+            return ErrorResponse(message=format_first_error(serializer.errors))
+
+        diagram = serializer.validated_data.get("diagram")
+        if diagram.has_paid:
+            return ErrorResponse(message="You do not need to pay for this diagram")
+
+        price_per_diagram = PRICE_PER_DIAGRAM
+
+        reference_uuid = uuid.uuid4()
+
+        request_body = {
+            "email": request.user.email,
+            "amount": int(price_per_diagram) * 100,
+            "reference": str(reference_uuid),
+            "callback_url": f"{settings.FE_URL}/diagram/{diagram.id}",
+        }
+        response = request_paystack(
+            "/transaction/initialize", method="post", data=request_body
+        )
+
+        if response.error:
+            return ErrorResponse(message=response.message)
+
+        Transaction.objects.create(
+            user=request.user,
+            trx_reference=reference_uuid,
+            transaction_type=TransactionTypeChoices.DIAGRAM_CHARGE,
+            payload=str(diagram.id),
+        )
+        return SuccessResponse(
+            message="",
+            data={
+                "payment_url": response.body.get("data", {}).get(
+                    "authorization_url", ""
+                )
+            },
+        )
+        # return SuccessResponse(
+        #     message="", data={"payment_url": transaction["data"]["authorization_url"]}
+        # )
 
 
 class GrantWriteRequestView(generics.GenericAPIView):
@@ -56,8 +185,14 @@ class GetDiagramMembers(generics.GenericAPIView):
             return ErrorResponse(message="Diagram does not exist")
 
         members = DiagramMember.objects.filter(diagram=diagram)
+        invitations = DiagramInvitation.objects.filter(diagram=diagram)
+
         return SuccessResponse(
-            message="members", data=self.get_serializer(members, many=True).data
+            message="members",
+            data={
+                "members": self.get_serializer(members, many=True).data,
+                "invitations": DiagramInvitationSerializer(invitations, many=True).data,
+            },
         )
 
 
@@ -79,18 +214,42 @@ class InviteUserView(generics.GenericAPIView):
                     message="Oops, only creators are allowed to invite members"
                 )
 
-            user = UserAccount.objects.get(email=email)
             if (
-                DiagramMember.objects.filter(diagram=diagram, user=user).exists()
+                DiagramMember.objects.filter(
+                    diagram=diagram, user__email=email
+                ).exists()
                 or email == diagram.creator.email
             ):
                 return ErrorResponse(message="User is already a member")
 
-            diagram_member = DiagramMember.objects.create(user=user, diagram=diagram)
-            send_invite_email(user.email, diagram)
+            active_invitations = DiagramInvitation.objects.filter(
+                expiry_date__gt=timezone.now(),  # expiry date is in the future
+                status=DiagramInvitationStatusChoices.PENDING,  # not yet accepted or rejected
+                diagram=diagram,
+                email=email,
+            )
+
+            if active_invitations.exists():
+                return ErrorResponse(
+                    message="You still have a pending invitation for this user on this diagram"
+                )
+
+            # diagram_member = DiagramMember.objects.create(user=user, diagram=diagram)
+            diagram_invitation = DiagramInvitation.objects.create(
+                email=email, diagram=diagram
+            )
+            send_invite_email(email, diagram, diagram_invitation)
+
+            user = UserAccount.objects.filter(email=email).first()
+            if user:
+                notify_user(
+                    user,
+                    "New collaboration invitation",
+                    f"You have been invited by {diagram.creator.first_name} to collaborate on {diagram.name} tap `Invitations` on your dashboard to accept or reject this invitation",
+                )
+
             return SuccessResponse(
-                message=f"{user.first_name} {user.last_name} has been invited successfully",
-                data=DiagramMemberSerializer(diagram_member).data,
+                message=f"An invite has been sent to {email}",
             )
         else:
             return ErrorResponse(message=format_first_error(serializer.errors))
@@ -222,8 +381,15 @@ class DiagramDetailView(generics.RetrieveAPIView):
         return super().retrieve(request, *args, **kwargs)
 
 
+class InvitedDiagramsListView(generics.ListAPIView):
+    serializer_class = DiagramMemberSerializer
+    permission_classes =[IsAuthenticated]
+    
+    def get_queryset(self):
+        return DiagramMember.objects.filter(user=self.request.user)
+
 class UserDiagramsListView(generics.ListAPIView):
-    serializer_class = DiagramCreateSerializer
+    serializer_class = DiagramSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
@@ -237,7 +403,9 @@ class CreateDiagramView(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
+
         if serializer.is_valid():
+
             return super().create(request, *args, **kwargs)
         else:
             return ErrorResponse(message=format_first_error(serializer.errors))

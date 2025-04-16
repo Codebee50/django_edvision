@@ -384,7 +384,7 @@
                                               text-align-last: left;
                                               color: #434343;
                                               letter-spacing: -0.2px;
-                                              font-weight: 700;
+                                              font-weight: 600;
                                               font-style: normal;
                                               font-variant-ligatures: normal;
                                             "
@@ -399,8 +399,7 @@
                                                   text-decoration: none;
                                                   text-transform: none;
                                                 "
-                                                >ERDVison collaboration
-                                                invitation</span
+                                                >Collaboration Invitation</span
                                               >
                                             </div>
                                           </div>
@@ -490,12 +489,21 @@
                                                   text-decoration: none;
                                                   text-transform: none;
                                                 "
-                                                >{{diagram.creator.first_name}}
+                                                >Hey there, <br />
+                                                <br />
+                                                {{diagram.creator.first_name}}
                                                 Has inited you to collaborate
                                                 with him on {{diagram.name}}
                                                 database diagram on ERDVision,
-                                                click he link below to view the
-                                                diagram</span
+                                                click the link below to accept
+                                                or decline the invitation</span
+                                              >
+
+                                              <br />
+                                              <br />
+                                              <i
+                                                >**This invitation will expire
+                                                in 7 days</i
                                               >
                                             </div>
                                           </div>
@@ -636,7 +644,25 @@
                                         <![endif]-->
                                         <!--[if !mso]><!-- -->
                                         <!-- <a style="display: inline-block; box-sizing: border-box; border-radius: 8px; background-color: #2b793c; padding: 14px 19px 14px 19px; font-family: 'Fira Sans', Arial, Helvetica, sans-serif; vertical-align: top; text-align: center; text-align-last: center; text-decoration: none; -webkit-text-size-adjust: none;" href="{{url}}" target="_blank"><span style="font-size: 16px;line-height: 150%;color:#ffffff;letter-spacing:-0.2px;font-weight:400;font-style:normal;display:inline-block;font-variant-ligatures:normal;"><span style="display:inline-block;"><span style="font-family: 'Poppins', Arial, Helvetica, sans-serif; font-size: 16px; line-height: 150%; text-decoration: none; text-transform: none;">Open Diagram</span></span></span></a> -->
-                                        <a href="{{url}}"> {{url}} </a>
+                                        <a href="{{url}}"> View invitation</a>
+
+                                        <br /><br />
+
+                                        <p
+                                          style="
+                                            font-family: 'Poppins', Arial,
+                                              Helvetica, sans-serif;
+                                            font-size: 12px;
+                                            line-height: 21px;
+                                            text-decoration: none;
+                                            text-transform: none;
+                                          "
+                                        >
+                                          Note: This invitation was intended for
+                                          {{user_email}}. If you were not expecting
+                                          this invitation, you can ignore this
+                                          email
+                                        </p>
                                         <!--<![endif]-->
                                       </th>
                                     </tr>

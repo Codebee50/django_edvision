@@ -1,16 +1,51 @@
 from rest_framework import generics
-from .serializers import RegistrationSerializer, EmailSerializer, EmailOtpSerializer, UserFieldsSerializer, LoginSerializer, UserSerializer, LogoutSerializer
+
+from billing.utils import get_active_subscription
+from diagram.models import DiagramInvitation
+from .serializers import NotificationIdSerializer, NotificationSerializer, RegistrationSerializer, EmailSerializer, EmailOtpSerializer, UserFieldsSerializer, LoginSerializer, UserSerializer, LogoutSerializer
 from common.responses import SuccessResponse, ErrorResponse
 from common.utils import format_first_error
-from .models import UserAccount
+from .models import Notification, UserAccount
 from .services import send_verification_email, confirm_verification_email, get_user_by_email
 from common.mixins import ValidatingGenericApiView
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import permissions
-
 from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
 
+
+class ReadAllNotificationsView(generics.GenericAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def post(self, request, *args, **kwargs):
+        unread_notifications = Notification.objects.filter(user=request.user, is_read=False)
+        unread_notifications.update(is_read=True)
+        
+        return SuccessResponse(message="All notifications read successfully")
+
+class ReadNotification(generics.GenericAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = NotificationIdSerializer
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if not serializer.is_valid():
+            return ErrorResponse(message=format_first_error(serializer.errors))
+        
+        notification_id = serializer.validated_data.get('notification_id')
+        try:
+            notification = Notification.objects.get(id=notification_id)
+            notification.is_read= True
+            notification.save()
+        except Notification.DoesNotExist:
+            return ErrorResponse(message="Notification not found")
+        
+        return SuccessResponse(message="Notification read successfully", data=NotificationSerializer(notification).data)
+
+class NotificationsList(generics.ListAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = NotificationSerializer
+    def get_queryset(self):
+        return Notification.objects.filter(user=self.request.user)
 
 class LogoutApi(generics.GenericAPIView):
     serializer_class = LogoutSerializer
@@ -121,6 +156,7 @@ class RegisterUserView(generics.CreateAPIView):
         if serializer.is_valid():
             validated_data = serializer.validated_data
             user_password = validated_data.pop('password')
+            invitation_id = validated_data.pop('invitation', None)
             
             user = UserAccount.objects.create(**validated_data)
             user.set_password(user_password)

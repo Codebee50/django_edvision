@@ -4,7 +4,7 @@ from rest_framework import generics
 from common.responses import ErrorResponse, SuccessResponse
 from common.utils import format_first_error
 from diagram.models import DatabaseColumn, DatabaseTable, Diagram, Relationship
-from diagram.overhaul.utils import update_or_create_column, update_or_create_relationship, update_or_create_table
+from diagram.overhaul.utils import parse_relationship, update_or_create_column, update_or_create_relationship, update_or_create_table
 from diagram.serializers import DatabaseTableSyncSerializer, DiagramDetailSerializer
 from .overhaul_serializers import DiagramOverhaulSerializer, TableSerializer
 
@@ -44,7 +44,8 @@ class OverHaulDiagramView(generics.GenericAPIView):
         
         for req_rel in serializer.validated_data.get('relationships'):
             req_rel['relationship']['diagram'] = diagram.id
-            relationship = update_or_create_relationship(req_rel.get('id'), req_rel.get('relationship'), diagram)
+            parsed_relationship = parse_relationship(req_rel.get('relationship'))
+            relationship = update_or_create_relationship(req_rel.get('id'), parsed_relationship, diagram)
             if relationship:
                 updated_relationship_ids.append(relationship.id)
         

@@ -26,3 +26,17 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return f"{self.email} - {self.id}"
     
+
+class Notification(models.Model):
+    user = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_negative = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_read = models.BooleanField(default=False)
+    
+    class Meta:
+        ordering = ['-created_at']

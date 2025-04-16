@@ -10,4 +10,7 @@ urlpatterns = [
     path('login/', views.UserLoginView.as_view(), name='login-view'),
     path('profile/', views.GetUserProfileView.as_view(), name='get-user-profile'),
     path('logout/', TokenBlacklistView.as_view(), name='logout'),
+    path('notifications/', views.NotificationsList.as_view(), name='notification-list'),
+    path('notifications/read/', views.ReadNotification.as_view(), name='read-notification'),
+    path('notifications/read-all/', views.ReadAllNotificationsView.as_view(), name='read-all-notification')
 ]

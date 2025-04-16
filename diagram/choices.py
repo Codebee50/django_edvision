@@ -1,6 +1,7 @@
 from django.db import models
 
 
+
 class RelationshipTypeChoices(models.TextChoices):
     ONE = 'one', 'One'
     MANY= 'many', 'Many'

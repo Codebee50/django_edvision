@@ -61,51 +61,51 @@ class RelSerializer(serializers.ModelSerializer):
         model = Relationship
         read_only_fields = ["synced", "diagram"]
 
-    def to_internal_value(self, data):
-        # Handle from_column field if it's a string
-        from_column_value = data.get("from_column")
-        if from_column_value and isinstance(from_column_value, str):
-            try:
-                # Try to convert to int first (for primary key)
-                try:
-                    # If it's an integer ID
-                    column_id = int(from_column_value)
-                    data["from_column"] = column_id
-                except ValueError:
-                    # If it's a UUID string
-                    uuid_obj = UUID(from_column_value)
-                    column = DatabaseColumn.objects.filter(flow_id=uuid_obj).first()
-                    if column:
-                        data["from_column"] = column.id
-                    else:
-                        print("the from column does not exist")
-            except (ValueError, TypeError):
-                # If conversion fails, let the normal validation handle it
-                pass
+    # def to_internal_value(self, data):
+    #     # Handle from_column field if it's a string
+    #     from_column_value = data.get("from_column")
+    #     if from_column_value and isinstance(from_column_value, str):
+    #         try:
+    #             # Try to convert to int first (for primary key)
+    #             try:
+    #                 # If it's an integer ID
+    #                 column_id = int(from_column_value)
+    #                 data["from_column"] = column_id
+    #             except ValueError:
+    #                 # If it's a UUID string
+    #                 uuid_obj = UUID(from_column_value)
+    #                 column = DatabaseColumn.objects.filter(flow_id=uuid_obj).first()
+    #                 if column:
+    #                     data["from_column"] = column.id
+    #                 else:
+    #                     print("the from column does not exist")
+    #         except (ValueError, TypeError):
+    #             # If conversion fails, let the normal validation handle it
+    #             pass
 
-        # Handle to_column field if it's a string
-        to_column_value = data.get("to_column")
-        if to_column_value and isinstance(to_column_value, str):
-            try:
-                # Try to convert to int first (for primary key)
-                try:
-                    # If it's an integer ID
-                    column_id = int(to_column_value)
-                    data["to_column"] = column_id
-                except ValueError:
-                    # If it's a UUID string
-                    uuid_obj = UUID(to_column_value)
-                    column = DatabaseColumn.objects.filter(flow_id=uuid_obj).first()
-                    if column:
-                        data["to_column"] = column.id
-                    else:
-                        print("the to column does not exist")
-            except (ValueError, TypeError):
-                # If conversion fails, let the normal validation handle it
-                pass
+    #     # Handle to_column field if it's a string
+    #     to_column_value = data.get("to_column")
+    #     if to_column_value and isinstance(to_column_value, str):
+    #         try:
+    #             # Try to convert to int first (for primary key)
+    #             try:
+    #                 # If it's an integer ID
+    #                 column_id = int(to_column_value)
+    #                 data["to_column"] = column_id
+    #             except ValueError:
+    #                 # If it's a UUID string
+    #                 uuid_obj = UUID(to_column_value)
+    #                 column = DatabaseColumn.objects.filter(flow_id=uuid_obj).first()
+    #                 if column:
+    #                     data["to_column"] = column.id
+    #                 else:
+    #                     print("the to column does not exist")
+    #         except (ValueError, TypeError):
+    #             # If conversion fails, let the normal validation handle it
+    #             pass
 
-        # Let the parent class handle the rest of the validation
-        return super().to_internal_value(data)
+    #     # Let the parent class handle the rest of the validation
+        # return super().to_internal_value(data)
 
     # def validate_from_column(self, value):
     #     print('the value in the serilizer is', value)
