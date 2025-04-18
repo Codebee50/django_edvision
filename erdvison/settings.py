@@ -223,3 +223,7 @@ PAYSTACK_PUBLIC_KEY = config("PAYSTACK_PUBLIC_KEY")
 EXCHANGE_RATE_API_KEY = config("EXCHANGE_RATE_API_KEY")
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+if not DEBUG:    
+    CSRF_TRUSTED_ORIGINS = [
+        "https://erdvision.up.railway.app"]
