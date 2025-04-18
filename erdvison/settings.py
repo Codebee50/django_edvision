@@ -178,7 +178,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
-    )
+    ),
+    'EXCEPTION_HANDLER': 'account.utils.custom_exception_handler',
+
 }
 
 SIMPLE_JWT = {
@@ -227,3 +229,4 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 if not DEBUG:    
     CSRF_TRUSTED_ORIGINS = [
         "https://erdvision.up.railway.app"]
+    
