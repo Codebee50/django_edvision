@@ -85,6 +85,9 @@ class DatabaseTable(models.Model):
     
     def __str__(self):
         return f"{self.id} - {self.name}"
+    
+    class Meta:
+        ordering = ['-created_at']
 
 class DatabaseColumn(models.Model):
     db_table = models.ForeignKey(DatabaseTable, on_delete=models.CASCADE)

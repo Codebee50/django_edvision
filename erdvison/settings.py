@@ -108,8 +108,6 @@ SWAGGER_SETTINGS = {
 #     }
 # }
 
-
-print(DEBUG)
 if DEBUG:
     DATABASES = {
         "default": {
@@ -198,8 +196,18 @@ DEFAULT_FROM_USER = config("EMAIL_HOST_USER")
 
 CORS_ALLOW_ALL_ORIGINS = True
 
+if DEBUG:
+    CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
+else:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "CONFIG": {
+                "hosts": [config('REDIS_URL')],
+            },
+        },
+    }
 
-CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
 
 EXPORT_DIR = "media/exports"
 

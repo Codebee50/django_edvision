@@ -147,7 +147,7 @@ class DiagramDetailSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def get_tables(self, obj):
-        tables = DatabaseTable.objects.filter(diagram=obj)
+        tables = DatabaseTable.objects.filter(diagram=obj).order_by('created_at')
         return DatabaseTableSerializer(tables, many=True).data
 
     def get_columns(self, obj):
