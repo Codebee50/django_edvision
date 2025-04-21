@@ -7,7 +7,7 @@ from django.core.cache import cache
 from .models import UserAccount
 
 def send_raw_email(email, subject, message):
-    send_mail(subject, message, f"ERDVision <{settings.EMAIL_HOST_USER}>", [email])
+    send_mail(subject, message, f"ERDVision <{settings.DEFAULT_FROM_USER}>", [email])
 
 def send_template_email(template, email, subject, **context):
     """Send an email based on a template."""
@@ -16,7 +16,7 @@ def send_template_email(template, email, subject, **context):
     send_mail(
         subject,
         plain_message,
-        f"ERDVision <{settings.EMAIL_HOST_USER}>",
+        f"ERDVision <{settings.DEFAULT_FROM_USER}>",
         [email],
         html_message=html_message,
     )

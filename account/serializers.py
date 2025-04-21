@@ -1,12 +1,26 @@
 from re import sub
 from rest_framework import serializers
 
+from account.services import send_raw_email
 from billing.models import Subscription
 from billing.serializers import SubscriptionSerializer
 from billing.utils import get_active_subscription
-from .models import Notification, UserAccount
+from .models import ContactSubmission, Notification, UserAccount
 from django.utils import timezone
 
+
+class ContactSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = "__all__"
+        model = ContactSubmission
+    
+    def create(self, validated_data):
+        message_content =f"Email: {validated_data.get('email')} \n\n \
+                        Fullname: {validated_data.get('fullname')} \n\n \
+                        Subject: {validated_data.get('subject')} \n\n \
+                        Message: {validated_data.get('message')}"
+        send_raw_email("onuhudoudo@gmail.com", "New message from Erdvision", message_content )
+        return super().create(validated_data)  
 
 class NotificationIdSerializer(serializers.Serializer):
     notification_id = serializers.IntegerField()

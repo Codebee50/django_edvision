@@ -51,8 +51,10 @@ def update_or_create_table(table_id, table_data) -> DatabaseTable:
 def update_or_create_column(column_id, column_data):
     existing_column = DatabaseColumn.objects.filter(id=column_id).first() if column_id else None
     if existing_column:
+        print('updating column', column_data, end='\n\n')
         column_serializer = DatabaseColumnUpdateSerializer(existing_column, data=column_data, partial=True)
     else:
+        print('creating column',column_data, end="\n\n")
         column_serializer = DatabaseColumnCreateSerializer(data=column_data)
 
     

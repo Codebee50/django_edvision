@@ -12,5 +12,6 @@ urlpatterns = [
     path('logout/', TokenBlacklistView.as_view(), name='logout'),
     path('notifications/', views.NotificationsList.as_view(), name='notification-list'),
     path('notifications/read/', views.ReadNotification.as_view(), name='read-notification'),
-    path('notifications/read-all/', views.ReadAllNotificationsView.as_view(), name='read-all-notification')
+    path('notifications/read-all/', views.ReadAllNotificationsView.as_view(), name='read-all-notification'),
+    path('contact/', views.ContactView.as_view(), name='contact')
 ]

@@ -2,7 +2,7 @@ from rest_framework import generics
 
 from billing.utils import get_active_subscription
 from diagram.models import DiagramInvitation
-from .serializers import NotificationIdSerializer, NotificationSerializer, RegistrationSerializer, EmailSerializer, EmailOtpSerializer, UserFieldsSerializer, LoginSerializer, UserSerializer, LogoutSerializer
+from .serializers import ContactSerializer, NotificationIdSerializer, NotificationSerializer, RegistrationSerializer, EmailSerializer, EmailOtpSerializer, UserFieldsSerializer, LoginSerializer, UserSerializer, LogoutSerializer
 from common.responses import SuccessResponse, ErrorResponse
 from common.utils import format_first_error
 from .models import Notification, UserAccount
@@ -13,6 +13,11 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import permissions
 from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
 
+
+
+class ContactView(generics.CreateAPIView):
+    permission_classes = [permissions.AllowAny]
+    serializer_class = ContactSerializer
 
 class ReadAllNotificationsView(generics.GenericAPIView):
     permission_classes = [permissions.IsAuthenticated]

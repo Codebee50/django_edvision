@@ -180,6 +180,15 @@ REST_FRAMEWORK = {
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
     'EXCEPTION_HANDLER': 'account.utils.custom_exception_handler',
+    
+    "REST_FRAMEWORK_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "15/min",
+        "user": "30/min",
+    },
 
 }
 
@@ -190,12 +199,14 @@ SIMPLE_JWT = {
 
 
 EMAIL_BACKEND = config("EMAIL_BACKEND")
-EMAIL_USE_TLS = True
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool)
 EMAIL_HOST = config("EMAIL_HOST")
 EMAIL_HOST_USER = config("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
 EMAIL_PORT = config("EMAIL_PORT")
-DEFAULT_FROM_USER = config("EMAIL_HOST_USER")
+DEFAULT_FROM_USER = config("EMAIL_FROM_USER")
+
+
 
 CORS_ALLOW_ALL_ORIGINS = True
 

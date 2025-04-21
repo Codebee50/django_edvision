@@ -25,6 +25,7 @@ class ColumnSerializer(serializers.ModelSerializer):
                 try:
                     data["flow_id"] = str(uuid.UUID(data["flow_id"])) if data["flow_id"] else None
                 except (ValueError, TypeError, AttributeError):
+                    print(f'failed to convert {data.get('flow_id')} to integer')
                     data.pop("flow_id")  # Remove if invalid
         return super().to_internal_value(data)
 
