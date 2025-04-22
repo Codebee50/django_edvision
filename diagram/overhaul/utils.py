@@ -1,6 +1,6 @@
 from uuid import UUID
 from diagram.overhaul.overhaul_serializers import RelSerializer
-from ..serializers import DatabaseColumnCreateSerializer, DatabaseColumnSerializer, DatabaseColumnUpdateSerializer, DatabaseTableSyncSerializer, DatabaseTableCreateSerializer, RelationshipCreateSerializer, RelationshipSerializer
+from ..serializers import DatabaseColumnCreateSerializer, DatabaseColumnSerializer, DatabaseColumnUpdateSerializer, DatabaseOverhaulColumnCreateSerializer, DatabaseTableSyncSerializer, DatabaseTableCreateSerializer, RelationshipCreateSerializer, RelationshipSerializer
 from ..models import DatabaseColumn, DatabaseTable, Relationship
 
 
@@ -55,7 +55,7 @@ def update_or_create_column(column_id, column_data):
         column_serializer = DatabaseColumnUpdateSerializer(existing_column, data=column_data, partial=True)
     else:
         print('creating column',column_data, end="\n\n")
-        column_serializer = DatabaseColumnCreateSerializer(data=column_data)
+        column_serializer = DatabaseOverhaulColumnCreateSerializer(data=column_data)
 
     
     if column_serializer.is_valid():

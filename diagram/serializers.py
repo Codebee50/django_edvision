@@ -165,6 +165,11 @@ class DatabaseColumnCreateSerializer(serializers.ModelSerializer):
         model = DatabaseColumn
         fields = ["db_table", "name", "datatype", "id", "flow_id"]
         read_only_fields = ["id"]
+class DatabaseOverhaulColumnCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DatabaseColumn
+        fields = ["db_table", "name", "datatype", "id", "flow_id", "is_primary_key", "is_nullable", "is_unique", "comment", "default_value"]
+        read_only_fields = ["id"]
 
 
 class DatabaseTableCreateSerializer(serializers.ModelSerializer):
