@@ -4,6 +4,7 @@ import uuid
 from rest_framework import generics
 
 from account.models import UserAccount
+from account.serializers import UserSerializer
 from account.utils import notify_user
 import billing
 from billing.models import (
@@ -20,7 +21,7 @@ from billing.serializers import (
 )
 from rest_framework.permissions import IsAuthenticated
 
-from billing.utils import convert_dollar_to_naira, request_paystack
+from billing.utils import convert_dollar_to_naira, get_active_subscription, request_paystack
 from common.responses import ErrorResponse, SuccessResponse
 from common.utils import format_first_error
 from django.conf import settings
@@ -37,7 +38,7 @@ class PaystackCallbackView(generics.GenericAPIView):
         try:
             amount = int(data.get("amount")) / 100
             diagram_id = uuid.UUID(transaction.payload)
-            print('the diaram id', diagram_id)
+            print("the diaram id", diagram_id)
             diagram = Diagram.objects.get(id=diagram_id)
             diagram.pay_per_diagram = True
             diagram.has_paid = True
@@ -82,6 +83,7 @@ class PaystackCallbackView(generics.GenericAPIView):
                 duration=duration,
                 amount_paid=amount_paid,
                 billing_cycle=billing_cycle,
+                customer_code=customer.get('customer_code')
             )
 
             notify_user(
@@ -128,7 +130,13 @@ class SubscribeToPlanView(generics.GenericAPIView):
         billing_cycle = serializer.validated_data.get("billing_cycle")
 
         # TODO: dont allow users who already have an active subscription to subscribe again
-
+        
+        active_subscription = get_active_subscription(request.user)
+        if active_subscription and active_subscription.is_active:
+            if active_subscription.plan.monthly_price > plan.monthly_price:
+                return ErrorResponse(message=f"You are already subscribed to the {active_subscription.plan.name} plan")
+            
+            
         if plan.monthly_price == 0:
             # crate a 1 year free plan
             subscription = Subscription.objects.create(
@@ -143,6 +151,7 @@ class SubscribeToPlanView(generics.GenericAPIView):
                 data={
                     "user_subscribed": True,
                     "subscription": SubscriptionSerializer(subscription).data,
+                    "user": UserSerializer(request.user).data,
                 },
             )
 

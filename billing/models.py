@@ -64,6 +64,7 @@ class Subscription(models.Model):
         choices=BillingCycleChoices.choices, default=BillingCycleChoices.MONTHLY
     )
     expiry_date = models.DateTimeField()
+    customer_code = models.TextField(null=True, blank=True)
 
     @property
     def get_expiry_date(self):

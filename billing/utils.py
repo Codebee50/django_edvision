@@ -5,8 +5,8 @@ from django.utils import timezone
 from account.models import UserAccount
 from .models import Subscription
 
-def get_active_subscription(user: UserAccount):
-    return Subscription.objects.filter(
+def get_active_subscription(user: UserAccount)->Subscription:
+    return Subscription.objects.select_related('plan').filter(
         user=user,
     ).order_by('-created_at').first()
 
