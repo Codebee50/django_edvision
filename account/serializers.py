@@ -8,6 +8,15 @@ from billing.utils import get_active_subscription
 from .models import ContactSubmission, Notification, UserAccount
 from django.utils import timezone
 
+class PasswordResetOtpVerificationSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    otp = serializers.CharField()
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    otp = serializers.CharField()
+    new_password = serializers.CharField()
+
 
 class ContactSerializer(serializers.ModelSerializer):
     class Meta:

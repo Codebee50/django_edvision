@@ -6,8 +6,10 @@ import random
 from django.core.cache import cache
 from .models import UserAccount
 
+
 def send_raw_email(email, subject, message):
     send_mail(subject, message, f"ERDVision <{settings.DEFAULT_FROM_USER}>", [email])
+
 
 def send_template_email(template, email, subject, **context):
     """Send an email based on a template."""
@@ -23,28 +25,67 @@ def send_template_email(template, email, subject, **context):
 
 
 def generate_code(length=6):
-    return ''.join([str(random.randint(0, 9)) for i in range(length)])
+    return "".join([str(random.randint(0, 9)) for i in range(length)])
+
 
 def send_invite_email(email, diagram, invitation):
-    send_template_email('invite.html', email, "ERDVision collaboration invite", **{
-        'diagram': diagram,
-        'url': f"{settings.FE_URL}/invitation/{invitation.id}/",
-        "user_email": email
-    })
+    send_template_email(
+        "invite.html",
+        email,
+        "ERDVision collaboration invite",
+        **{
+            "diagram": diagram,
+            "url": f"{settings.FE_URL}/invitation/{invitation.id}/",
+            "user_email": email,
+        },
+    )
+
+
+def send_password_reset_email(email):
+    otp = generate_code()
+    cache.set(f"pr-{email}", otp, timeout=500)
+    send_raw_email(
+        email,
+        "ERDVision password reset",
+        f"Use this code to reset your ERDVision account password\n\n{otp}\n\nPlease do not share this code with anyone, it expires in the next 5 minutes.",
+    )
+    return True
+
+
+def verify_password_reset_otp(email, user_otp):
+    cached_otp = cache.get(f'pr-{email}')
+    
+    try:
+        user = UserAccount.objects.get(email=email)
+    except UserAccount.DoesNotExist:
+        return False, "Invalid user account"
+
+    if cached_otp and user:
+        if user_otp == cached_otp:
+            return True, "Valid otp"
+        else:
+            return False, "Invalid otp"
+    return False, "Invalid otp"
 
 
 def send_verification_email(email):
     otp = generate_code()
     cache.set(f"verf-{email}", otp, timeout=300)
-    send_raw_email(email, 'ERDVision account activation', f"Your otp verification code is {otp}. Don't share this code with anyone. It is valid for the next 5 minutes.0")
-    
-def confirm_verification_email(email:str, otp:str)->bool:
+    send_raw_email(
+        email,
+        "ERDVision account activation",
+        f"Your otp verification code is {otp}.\n\nDon't share this code with anyone. It is valid for the next 5 minutes.",
+    )
+
+
+def confirm_verification_email(email: str, otp: str) -> bool:
     cached_otp = cache.get(f"verf-{email}", None)
     return cached_otp == otp
 
+
 def get_user_by_email(email):
     try:
-        user= UserAccount.objects.get(email=email)
+        user = UserAccount.objects.get(email=email)
     except UserAccount.DoesNotExist:
         return None
     return user
