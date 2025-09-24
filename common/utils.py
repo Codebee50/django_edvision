@@ -1,3 +1,5 @@
+from urllib.parse import urlparse
+
 def get_first_error(errors):
     """
     Gets the first message in a serializer.errors
@@ -16,3 +18,16 @@ def format_first_error(errors, with_keys=True):
         return f"{field} - {error_list[0]}" if with_keys else error_list[0]
     else:
         return format_first_error(error_list)
+    
+
+
+def get_request_origin(request):
+    origin = request.META.get("HTTP_ORIGIN", None)
+    print('the origin is', origin)
+    referrer = request.META.get('HTTP_REFERER', origin)
+    
+    if referrer:
+        parsed_url = urlparse(referrer)
+        origin = f"{parsed_url.scheme}://{parsed_url.netloc}"
+        return origin
+    return "httpS://erdvision.dev"

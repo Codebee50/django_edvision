@@ -21,14 +21,14 @@ from billing.serializers import (
 )
 from rest_framework.permissions import IsAuthenticated
 
-from billing.utils import convert_dollar_to_naira, get_active_subscription, request_paystack
+from billing.utils import ApiResponse, convert_dollar_to_naira, get_active_subscription, request_paystack
 from common.responses import ErrorResponse, SuccessResponse
 from common.utils import format_first_error
 from django.conf import settings
 from django.db.models import Q
 
 from diagram.models import Diagram
-
+import stripe
 
 class PaystackCallbackView(generics.GenericAPIView):
     def diagram_charge_handler(self, charge_data, transaction: Transaction):
@@ -120,6 +120,67 @@ class PaystackCallbackView(generics.GenericAPIView):
 class SubscribeToPlanView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = SubscribeSerializer
+    
+    def initiate_paystack_subscription(self, callback_url, plan, user, billing_cycle):
+        plan_code_key = ("paystack_plan_code"if billing_cycle == BillingCycleChoices.MONTHLY else "paystack_yearly_plan_code")
+        plan_code = getattr(plan, plan_code_key, None)
+        print("the plan code is", plan_code)
+        if not plan_code:
+            return ErrorResponse(message="Plan not configured, please try gain later")
+        
+        
+        reference = str(uuid.uuid4())
+        request_body = {
+            "email": user.email,
+            "amount": plan.monthly_price,
+            "plan": plan_code,
+            "callback_url": callback_url,
+            "reference": reference,
+        }
+        response = request_paystack("/transaction/initialize", method="post", data=request_body)
+        if response.error:
+            return ApiResponse(error=True, message=response.message)
+   
+        Transaction.objects.create(
+            user=user,
+            trx_reference=reference,
+            transaction_type=TransactionTypeChoices.SUBSCRIPTION,
+        )
+        return ApiResponse(error=False, body=response.body, message=response.message)
+    
+    def initiate_stripe_subscription(self, callback_url, plan, user, billing_cycle):
+        stripe.api_key = settings.STRIPE_SECRET_KEY
+        plan_code_key = "stripe_monthly_plan_id" if billing_cycle == BillingCycleChoices.MONTHLY else "stripe_yearly_plan_id"
+        plan_code = getattr(plan, plan_code_key, None)
+        print("the plan code is", plan_code)
+        if not plan_code:
+            return ApiResponse(error=True, message="Plan not configured, please try gain later")
+        try:
+            reference = str(uuid.uuid4())
+            session = stripe.checkout.Session.create(
+                success_url=callback_url,
+                cancel_url=callback_url,
+                mode="subscription",
+                line_items=[{
+                    "price": plan_code,
+                    "quantity": 1,
+                }],
+                metadata={
+                    "reference": reference,
+                },
+            )
+            
+            response_body = {
+                "data": {
+                    "authorization_url": session.url,
+                    "reference": reference,
+                    "session_id": session.id,
+                }
+            }
+            
+            return ApiResponse(error=False, body=response_body, message="Subscription initialized")
+        except Exception as e:
+            return ApiResponse(error=True, message=str(e))
 
     def post(self, request):
         serializer = self.get_serializer(data=request.data)
@@ -154,40 +215,13 @@ class SubscribeToPlanView(generics.GenericAPIView):
                     "user": UserSerializer(request.user).data,
                 },
             )
-
-        plan_code_key = (
-            "paystack_plan_code"
-            if billing_cycle == BillingCycleChoices.MONTHLY
-            else "paystack_yearly_plan_code"
-        )
-        plan_code = getattr(plan, plan_code_key, None)
-        if not plan_code:
-            return ErrorResponse(message="Plan not configured, please try gain later")
-
-        user = request.user
-        # naira_equivalent = convert_dollar_to_naira(plan.monthly_price)
-        # if naira_equivalent == 0:
-        #     return ErrorResponse(message="Error parsing prices, please try again later or contact support.")
-
-        reference = str(uuid.uuid4())
-        request_body = {
-            "email": user.email,
-            "amount": plan.monthly_price,
-            "plan": plan_code,
-            "callback_url": f"{settings.FE_URL}/dashboard",
-            "reference": reference,
-        }
-        response = request_paystack(
-            "/transaction/initialize", method="post", data=request_body
-        )
+        user = request.user        
+        callback_url = f"{settings.FE_URL}/dashboard"
+        response = self.initiate_stripe_subscription(callback_url, plan, user, billing_cycle)
+        # response = self.initiate_paystack_subscription(callback_url, plan, user, billing_cycle)
         if response.error:
             return ErrorResponse(message=response.message)
 
-        Transaction.objects.create(
-            user=request.user,
-            trx_reference=reference,
-            transaction_type=TransactionTypeChoices.SUBSCRIPTION,
-        )
         return SuccessResponse(message="Subscription initialized", data=response.body)
 
 

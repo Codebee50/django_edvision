@@ -4,7 +4,7 @@ from account.models import UserAccount
 from dateutil.relativedelta import relativedelta
 from datetime import timedelta
 from django.utils import timezone
-
+from diagram.choices import PaymentGatewayChoices
 # Create your models here.
 
 
@@ -44,6 +44,12 @@ class Plan(models.Model):
     paystack_yearly_plan_code = models.TextField(
         null=True, blank=True, help_text="Plan code of the yearly plan on paystack"
     )
+    stripe_monthly_plan_id = models.TextField(
+        null=True, blank=True, help_text="Plan id of the monthly plan on stripe"
+    )
+    stripe_yearly_plan_id = models.TextField(
+        null=True, blank=True, help_text="Plan id of the yearly plan on stripe"
+    )
     currency_symbol = models.CharField(default="$", max_length=5)
 
     def __str__(self) -> str:
@@ -65,6 +71,9 @@ class Subscription(models.Model):
     )
     expiry_date = models.DateTimeField()
     customer_code = models.TextField(null=True, blank=True)
+    payment_gateway = models.CharField(
+        choices=PaymentGatewayChoices.choices, default=PaymentGatewayChoices.PAYSTACK
+    )
 
     @property
     def get_expiry_date(self):

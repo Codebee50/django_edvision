@@ -28,6 +28,7 @@ SECRET_KEY = "django-insecure-w*8dnj%k*x98clo-zpp@hq1z8u415oae)8v@by7$p+%x5@7$cm
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config("DEBUG", default=False, cast=bool)
 
+
 ALLOWED_HOSTS = ["*"]
 
 
@@ -240,4 +241,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 if not DEBUG:    
     CSRF_TRUSTED_ORIGINS = [
         "https://erdvision.up.railway.app"]
-    
+
+
+STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY")
+STRIPE_WEBHOOK_SECRET = config("STRIPE_WEBHOOK_SECRET")
