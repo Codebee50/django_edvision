@@ -60,7 +60,7 @@ class Plan(models.Model):
 
 
 class Subscription(models.Model):
-    user = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
+    user = models.OneToOneField(UserAccount, on_delete=models.CASCADE)
     duration = models.IntegerField(help_text="duration in months")
     plan = models.ForeignKey(Plan, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -98,6 +98,12 @@ class Subscription(models.Model):
 class TransactionTypeChoices(models.TextChoices):
     SUBSCRIPTION= 'subscription', 'Subscription'
     DIAGRAM_CHARGE = 'diagram_charge', 'Diagram charge'
+    
+class TransactionStatusChoices(models.TextChoices):
+    PENDING = 'pending', 'Pending'
+    SUCCESS = 'success', 'Success'
+    FAILED = 'failed', 'Failed'
+    
 class Transaction(models.Model):
     user = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
     trx_reference = models.UUIDField()
@@ -105,3 +111,4 @@ class Transaction(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     transaction_type = models.CharField(max_length=25, choices=TransactionTypeChoices.choices, default=TransactionTypeChoices.DIAGRAM_CHARGE)
     payload = models.JSONField(null=True, blank=True)
+    status = models.CharField(max_length=25, choices=TransactionStatusChoices.choices, default=TransactionStatusChoices.PENDING)
