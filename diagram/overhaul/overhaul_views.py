@@ -9,7 +9,7 @@ from .overhaul_serializers import DiagramOverhaulSerializer, TableSerializer
 class OverHaulDiagramView(generics.GenericAPIView):
     serializer_class= DiagramOverhaulSerializer
     
-    @measure_time_decorator
+    # @measure_time_decorator
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
