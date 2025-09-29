@@ -16,7 +16,7 @@ class ColumnSerializer(serializers.ModelSerializer):
         read_only_fields = ["synced", "db_table"]
 
     def to_internal_value(self, data):
-        print("executing to internal", data.get("flow_id"))
+        # print("executing to internal", data.get("flow_id"))
         """Set flow_id to None if an invalid UUID is provided"""
         if "flow_id" in data:
             if isinstance(data.get("flow_id", 0), int):
@@ -33,6 +33,7 @@ class ColumnSerializer(serializers.ModelSerializer):
 class OHDiagramColumnsSerializer(serializers.Serializer):
     id = serializers.IntegerField(required=False, allow_null=True)
     column = ColumnSerializer(partial=True)
+    changed = serializers.BooleanField(required=False, allow_null=True, default=False)
 
 
 class TableSerializer(serializers.ModelSerializer):
@@ -51,6 +52,7 @@ class TableSerializer(serializers.ModelSerializer):
 class OHDiagramTableSerializer(serializers.Serializer):
     id = serializers.IntegerField(required=False, allow_null=True)
     table = TableSerializer(partial=True)
+    changed = serializers.BooleanField(required=False, allow_null=True, default=False)
 
 
 class RelSerializer(serializers.ModelSerializer):
@@ -119,6 +121,7 @@ class RelSerializer(serializers.ModelSerializer):
 class OHRelationshipsSerializer(serializers.Serializer):
     id = serializers.IntegerField(required=False, allow_null=True)
     relationship = RelSerializer()
+    changed = serializers.BooleanField(required=False, allow_null=True, default=False)
 
 
 class DeletedItemSerializer(serializers.Serializer):
