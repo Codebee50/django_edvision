@@ -13,7 +13,7 @@ def get_active_subscription(user: UserAccount)->Subscription:
 
 
 class ApiResponse():
-    def __init__(self, error:bool, body, message:str, status_code=200) -> None:
+    def __init__(self, error:bool, body=None, message:str="", status_code=200) -> None:
         self.error = error
         self.body = body
         self.message = message

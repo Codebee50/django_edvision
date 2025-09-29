@@ -71,7 +71,7 @@ class DiagramInvitation(models.Model):
         
         
 class DatabaseTable(models.Model):
-    diagram = models.ForeignKey(Diagram, on_delete=models.CASCADE)
+    diagram = models.ForeignKey(Diagram, on_delete=models.CASCADE, related_name='tables')
     name = models.CharField(max_length=50)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at =models.DateTimeField(auto_now=True)
@@ -90,7 +90,7 @@ class DatabaseTable(models.Model):
         ordering = ['-created_at']
 
 class DatabaseColumn(models.Model):
-    db_table = models.ForeignKey(DatabaseTable, on_delete=models.CASCADE)
+    db_table = models.ForeignKey(DatabaseTable, on_delete=models.CASCADE, related_name='columns')
     name = models.CharField(max_length=50)
     datatype = models.CharField(max_length=50)
     is_primary_key = models.BooleanField(default=False)
@@ -110,7 +110,7 @@ class DatabaseColumn(models.Model):
         ordering = ['-created_at']
 
 class Relationship(models.Model):
-    diagram = models.ForeignKey(Diagram, on_delete=models.CASCADE)
+    diagram = models.ForeignKey(Diagram, on_delete=models.CASCADE, related_name='relationships')
     from_column = models.ForeignKey(DatabaseColumn, on_delete=models.CASCADE, related_name='from_column_rels')
     to_column = models.ForeignKey(DatabaseColumn, on_delete=models.CASCADE, related_name="to_column_rels")
     rel_type = models.CharField(max_length=20)

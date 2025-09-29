@@ -1,6 +1,8 @@
 from django.db import models
 
-
+class PaymentGatewayChoices(models.TextChoices):
+    PAYSTACK = 'paystack', 'Paystack'
+    STRIPE = 'stripe', 'Stripe'
 
 class RelationshipTypeChoices(models.TextChoices):
     ONE = 'one', 'One'
