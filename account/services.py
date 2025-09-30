@@ -5,23 +5,52 @@ from django.utils.html import strip_tags
 import random
 from django.core.cache import cache
 from .models import UserAccount
+import requests
+
+
+def send_brevo_email(recipient_email, subject, message):
+    response = requests.post(
+        "https://api.brevo.com/v3/smtp/email",
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {settings.BREVO_API_KEY}", # this is the api key for the brevo api
+            "accept": "application/json",
+            "api-key": settings.BREVO_API_KEY
+        },
+        json={
+            "to": [{"email": recipient_email}],
+            "subject": subject,
+            "htmlContent": message,
+            "sender": {
+                "name": "ERDVision",
+                "email": "support@erdvision.dev"
+            }
+        }
+    )
+    try:
+        return response.json()
+    except Exception as e:
+        print(e)
+        return None
 
 
 def send_raw_email(email, subject, message):
-    send_mail(subject, message, f"ERDVision <{settings.DEFAULT_FROM_USER}>", [email])
+    if settings.DEBUG:
+        send_mail(subject, message, f"ERDVision <{settings.DEFAULT_FROM_USER}>", [email])
+    else:
+        send_brevo_email(email, subject, message)
+    # send_mail(subject, message, f"ERDVision <{settings.DEFAULT_FROM_USER}>", [email])
 
 
 def send_template_email(template, email, subject, **context):
     """Send an email based on a template."""
     html_message = render_to_string(template, context)
     plain_message = strip_tags(html_message)
-    send_mail(
-        subject,
-        plain_message,
-        f"ERDVision <{settings.DEFAULT_FROM_USER}>",
-        [email],
-        html_message=html_message,
-    )
+    
+    if settings.DEBUG:
+        send_mail(subject, plain_message, f"ERDVision <{settings.DEFAULT_FROM_USER}>", [email], html_message=html_message)
+    else:
+        send_brevo_email(email, subject, html_message)
 
 
 def generate_code(length=6):
@@ -47,7 +76,7 @@ def send_password_reset_email(email):
     send_raw_email(
         email,
         "ERDVision password reset",
-        f"Use this code to reset your ERDVision account password\n\n{otp}\n\nPlease do not share this code with anyone, it expires in the next 5 minutes.",
+        f"Use this code to reset your ERDVision account password<br><b>{otp}</b><br>Please do not share this code with anyone, it expires in the next 5 minutes.",
     )
     return True
 
