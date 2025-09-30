@@ -1,6 +1,8 @@
+from django.views import generic
 from requests import delete
 from rest_framework import generics
 
+from account.firebase_auth import get_or_create_user_from_firebase, verify_firebase_token
 from billing.utils import get_active_subscription
 from diagram.models import DiagramInvitation
 from .serializers import (
@@ -16,6 +18,7 @@ from .serializers import (
     LoginSerializer,
     UserSerializer,
     LogoutSerializer,
+    GoogleSignInSerializer,
 )
 from common.responses import SuccessResponse, ErrorResponse
 from common.utils import format_first_error
@@ -33,6 +36,43 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import permissions
 from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
 from django.core.cache import cache
+
+class GoogleSigInView(generics.GenericAPIView):
+    serializer_class = GoogleSignInSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        id_token = serializer.validated_data.get("id_token")
+        
+        decoded_token = verify_firebase_token(serializer.validated_data.get("id_token"))
+        if not decoded_token:
+            return ErrorResponse(message="Invalid or expired token")
+        
+        try:
+            user, created = get_or_create_user_from_firebase(decoded_token)
+            
+            if not user.is_active:
+                return ErrorResponse(message="Your account is currently inactive. Please contact support to reactivate your account.")
+            
+            if not user.email_verified:
+                send_verification_email(user.email)
+                return ErrorResponse(message="Email is not verified, please complete email verification before login attempt", data={
+                    "pending_email_verification": True,
+                    "email": user.email
+                })
+            
+            refresh = RefreshToken.for_user(user)
+            
+            return SuccessResponse(message="Login successful", data={
+                "refresh_token": str(refresh),
+                "access_token": str(refresh.access_token),
+                "user": UserFieldsSerializer(user).data,
+            })
+            
+        except Exception as e:
+            return ErrorResponse(message=f"An error occurred while signing in with Google: {e}")
+        return SuccessResponse(message="Google sign in successful")
 
 
 class PasswordOtpVerificationView(generics.GenericAPIView):

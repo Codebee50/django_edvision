@@ -8,6 +8,10 @@ from billing.utils import get_active_subscription
 from .models import ContactSubmission, Notification, UserAccount
 from django.utils import timezone
 
+
+class GoogleSignInSerializer(serializers.Serializer):
+    id_token = serializers.CharField()
+
 class PasswordResetOtpVerificationSerializer(serializers.Serializer):
     email = serializers.EmailField()
     otp = serializers.CharField()
