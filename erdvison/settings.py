@@ -18,6 +18,8 @@ from datetime import timedelta
 import os
 from decouple import config
 import dj_database_url
+import firebase_admin
+from firebase_admin import credentials
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -248,3 +250,17 @@ STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY")
 STRIPE_WEBHOOK_SECRET = config("STRIPE_WEBHOOK_SECRET")
 
 BREVO_API_KEY = config("BREVO_API_KEY")
+
+FIREBASE_CREDENTIALS = {
+    "type": "service_account",
+    "project_id": config('FIREBASE_PROJECT_ID'),
+    "private_key_id": config('FIREBASE_PRIVATE_KEY_ID'),
+    "private_key": config('FIREBASE_PRIVATE_KEY').replace('\\n', '\n'),
+    "client_email": config('FIREBASE_CLIENT_EMAIL'),
+    "client_id": config('FIREBASE_CLIENT_ID'),
+    "auth_uri": config('FIREBASE_AUTH_URI', default='https://accounts.google.com/o/oauth2/auth'),
+    "token_uri": config('FIREBASE_TOKEN_URI', default='https://oauth2.googleapis.com/token'),
+}
+
+cred = credentials.Certificate(FIREBASE_CREDENTIALS)
+firebase_admin.initialize_app(cred)

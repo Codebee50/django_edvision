@@ -39,4 +39,5 @@ urlpatterns = [
         views.PasswordOtpVerificationView.as_view(),
         name="verify-password-reset-otp",
     ),
+    path("google/signin/", views.GoogleSigInView.as_view(), name="google-signin"),
 ]
