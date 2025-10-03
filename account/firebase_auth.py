@@ -28,9 +28,21 @@ def get_or_create_user_from_firebase(decoded_token:dict):
         
         random_password = str(uuid.uuid4())
         
+        full_name = decoded_token.get('name', '')
+        name_parts = full_name.strip().split()
+        if len(name_parts) == 0:
+            first_name = full_name
+            last_name = ''
+        elif len(name_parts) == 1:
+            first_name = name_parts[0]
+            last_name = ''
+        else:
+            first_name = name_parts[0]
+            last_name = ' '.join(name_parts[1:])
+        
         user = UserAccount.objects.create_user(
-            first_name=decoded_token.get('name'),
-            last_name=decoded_token.get('name'),
+            first_name=first_name,
+            last_name=last_name,
             email = decoded_token.get('email'),
             password=random_password,
             email_verified = True
