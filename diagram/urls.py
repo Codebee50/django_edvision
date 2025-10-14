@@ -31,5 +31,6 @@ urlpatterns = [
     path('invitations/', views.ListMyInvitationsView.as_view(), name='list-my-invitations'),
     path('invitation/accept/', views.AcceptInvitationView.as_view(), name='accept-invitation'),
     path('invitation/reject/', views.RejectInvitationView.as_view(), name='reject-invitation'),
-    path('shared/', views.InvitedDiagramsListView.as_view(), name='invited-diagrams')
+    path('shared/', views.InvitedDiagramsListView.as_view(), name='invited-diagrams'),
+    path('export/ai/', views.ExportDiagramUsingAi.as_view(), name='export-diagram-using-ai'),
 ]

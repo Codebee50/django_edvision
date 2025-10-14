@@ -264,3 +264,5 @@ FIREBASE_CREDENTIALS = {
 
 cred = credentials.Certificate(FIREBASE_CREDENTIALS)
 firebase_admin.initialize_app(cred)
+
+ANTHROPIC_API_KEY = config("ANTHROPIC_API_KEY")

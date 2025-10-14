@@ -21,8 +21,25 @@ from .datatypes import mappings
 from account.services import send_invite_email
 from django.conf import settings
 from django.utils import timezone
-
+from .agents import export_diagram_using_claude
 # Create your views here.
+
+class ExportDiagramUsingAi(generics.GenericAPIView):
+    serializer_class = ExportDiagramUsingAiSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if not serializer.is_valid():
+            return ErrorResponse(message=format_first_error(serializer.errors))
+        
+        diagram = serializer.validated_data.get("diagram")
+        format_name = serializer.validated_data.get("format_name")
+        
+        response = export_diagram_using_claude(diagram_id=str(diagram.id), format_name=format_name)
+        
+        return SuccessResponse(message="Diagram exported successfully")
+        
 
 
 class RejectInvitationView(generics.GenericAPIView):

@@ -123,4 +123,3 @@ class Relationship(models.Model):
     to_rel = models.CharField(max_length=6, choices=RelationshipTypeChoices.choices, default=RelationshipTypeChoices.ONE)
     
     
-    

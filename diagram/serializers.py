@@ -6,6 +6,26 @@ from account.models import UserAccount
 from account.serializers import UserFieldsSerializer, UserSerializer
 
 
+class ExportDiagramUsingAiSerializer(serializers.Serializer):
+    available_format_names = [
+        "Postgresql",
+        "MySQL",
+        "SQL Server",
+        "Oracle",
+        "Django ORM",
+        "GORM",
+    ]
+    diagram = serializers.UUIDField()
+    format_name = serializers.ChoiceField(choices=available_format_names)
+    
+    def validate_diagram(self, value):
+        try:
+            diagram = Diagram.objects.get(id=value)
+            return diagram
+        except Diagram.DoesNotExist:
+            raise serializers.ValidationError("Diagram not found")
+
+
 class DiagramSerializer(serializers.ModelSerializer):
     creator = UserFieldsSerializer()
     class Meta:
@@ -134,6 +154,23 @@ class DatabaseTableSerializer(serializers.ModelSerializer):
         columns = DatabaseColumn.objects.filter(db_table=obj).order_by('id')
         return DatabaseColumnSerializer(columns, many=True).data
 
+
+class AiExportDiagramSerializer(serializers.ModelSerializer):
+    tables = serializers.SerializerMethodField()
+    relationships = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Diagram
+        fields = "__all__"
+        
+        
+    def get_tables(self, obj):
+        tables = DatabaseTable.objects.filter(diagram=obj).order_by('id')
+        return DatabaseTableSerializer(tables, many=True).data
+        
+    def get_relationships(self, obj):
+        relationships = Relationship.objects.filter(diagram=obj)
+        return RelationshipSerializer(relationships, many=True).data
 
 class DiagramDetailSerializer(serializers.ModelSerializer):
     tables = serializers.SerializerMethodField()
