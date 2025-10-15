@@ -2,28 +2,7 @@ from rest_framework import serializers
 
 from billing.utils import get_active_subscription
 from .models import Diagram, DatabaseTable, DatabaseColumn, DiagramInvitation, DiagramInvitationStatusChoices, Relationship, DiagramMember
-from account.models import UserAccount
 from account.serializers import UserFieldsSerializer, UserSerializer
-
-
-class ExportDiagramUsingAiSerializer(serializers.Serializer):
-    available_format_names = [
-        "Postgresql",
-        "MySQL",
-        "SQL Server",
-        "Oracle",
-        "Django ORM",
-        "GORM",
-    ]
-    diagram = serializers.UUIDField()
-    format_name = serializers.ChoiceField(choices=available_format_names)
-    
-    def validate_diagram(self, value):
-        try:
-            diagram = Diagram.objects.get(id=value)
-            return diagram
-        except Diagram.DoesNotExist:
-            raise serializers.ValidationError("Diagram not found")
 
 
 class DiagramSerializer(serializers.ModelSerializer):
@@ -32,6 +11,7 @@ class DiagramSerializer(serializers.ModelSerializer):
         model = Diagram
         fields = '__all__'
         
+
         
 class DiagramInvitationIdSerializer(serializers.Serializer):
     invitation = serializers.IntegerField()

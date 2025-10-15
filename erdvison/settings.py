@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "chat",
     "export",
     "billing",
+    "common",
     "rest_framework",
     "drf_yasg",
     "corsheaders",

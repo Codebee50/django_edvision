@@ -3,7 +3,7 @@ from rest_framework import generics
 
 from account.utils import notify_user
 from billing.models import PRICE_PER_DIAGRAM, Transaction, TransactionTypeChoices
-from billing.utils import get_active_subscription, request_paystack
+from billing.utils import request_paystack
 from .serializers import *
 from rest_framework.permissions import IsAuthenticated
 from common.utils import format_first_error
@@ -21,32 +21,12 @@ from .datatypes import mappings
 from account.services import send_invite_email
 from django.conf import settings
 from django.utils import timezone
-from .agents import export_diagram_using_claude
 # Create your views here.
 
-class ExportDiagramUsingAi(generics.GenericAPIView):
-    serializer_class = ExportDiagramUsingAiSerializer
-    permission_classes = [IsAuthenticated]
-    
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        if not serializer.is_valid():
-            return ErrorResponse(message=format_first_error(serializer.errors))
-        
-        diagram = serializer.validated_data.get("diagram")
-        format_name = serializer.validated_data.get("format_name")
-        
-        response = export_diagram_using_claude(diagram_id=str(diagram.id), format_name=format_name)
-        
-        return SuccessResponse(message="Diagram exported successfully")
-        
-
-
 class RejectInvitationView(generics.GenericAPIView):
-    serializer_class = DiagramInvitationIdSerializer
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if not serializer.is_valid():
             return ErrorResponse(message=format_first_error(serializer.errors))
