@@ -121,6 +121,8 @@ class Relationship(models.Model):
     target_suffix = models.CharField(max_length=10, default='rt')
     from_rel = models.CharField(max_length=6, choices=RelationshipTypeChoices.choices, default=RelationshipTypeChoices.ONE)
     to_rel = models.CharField(max_length=6, choices=RelationshipTypeChoices.choices, default=RelationshipTypeChoices.ONE)
-    
+
+
+
     
     

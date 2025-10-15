@@ -3,7 +3,7 @@ from rest_framework import generics
 
 from account.utils import notify_user
 from billing.models import PRICE_PER_DIAGRAM, Transaction, TransactionTypeChoices
-from billing.utils import get_active_subscription, request_paystack
+from billing.utils import request_paystack
 from .serializers import *
 from rest_framework.permissions import IsAuthenticated
 from common.utils import format_first_error
@@ -21,15 +21,12 @@ from .datatypes import mappings
 from account.services import send_invite_email
 from django.conf import settings
 from django.utils import timezone
-
 # Create your views here.
 
-
 class RejectInvitationView(generics.GenericAPIView):
-    serializer_class = DiagramInvitationIdSerializer
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if not serializer.is_valid():
             return ErrorResponse(message=format_first_error(serializer.errors))
